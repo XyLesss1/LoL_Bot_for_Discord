@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 import asyncio
 import config
-
+import LoL
 from discord.ext.commands import MissingPermissions, guild_only
 
 intents = discord.Intents.all()
@@ -111,5 +111,28 @@ async def unban (ctx, name, reason='reason'):
     async for user in banned_users:
         if user.user.global_name == name:
             await ctx.guild.unban(user.user)
+
+@bot.command()
+async def get_puuid(ctx, name, tag):
+    puuid = await LoL.get_puuid(name, tag)
+    await ctx.send(f'puuid: {puuid}')
+
+@bot.command()
+async def stats(ctx, name, tag, region='RU'):
+    puuid = await LoL.get_puuid(name, tag)
+    id = await LoL.get_sum_id(region, puuid)
+    stats = await LoL.get_stats(id, puuid, region)
+    embed = discord.Embed(
+        title='Статистика игрока',
+        color=discord.Colour.dark_blue(),
+    )
+    top_champs = await LoL.get_top_champions(region, puuid, top=3)
+    embed.add_field(name='level', value=stats['level'])
+    embed.add_field(name='rank', value=stats['rank'])
+    embed.add_field(name='winrate', value=stats['winrate'])
+    embed.add_field(name='Top Champions', value=f'{top_champs[0]}\n{top_champs[1]}\n{top_champs[2]}')
+    embed.set_image(url=f'https://ddragon.leagueoflegends.com/cdn/img/champion/splash/{top_champs[0]}_3.jpg')
+    await ctx.send(embed=embed)
+
 if __name__ == '__main__':
     bot.run(token=config.BOT_TOKEN)
