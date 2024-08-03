@@ -56,4 +56,11 @@ async def get_top_champions(region, puuid, top=3):
             top_champ = [Champion.find_champ(id) for id in tops]
             return top_champ
 
-asyncio.run(get_top_champions('RU', 'Tluh0ULV_4E5NuofKZ27nj2cUez2j8jAKht1oSUFVlhP86UlHQYpqMthGdKuNd_xxwGl_k4xjg1NxQ'))
+async def get_icon_id(region, puuid):
+    async with aiohttp.ClientSession() as session:
+        url = f'https://{region}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid' \
+              f'/{puuid}' + '?api_key=' + api_key
+        async with session.get(url) as resp:
+            icon_info = await resp.json()
+            return icon_info['profileIconId']
+

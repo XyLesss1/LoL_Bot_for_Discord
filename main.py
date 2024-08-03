@@ -3,7 +3,7 @@ from discord.ext import commands
 import asyncio
 import config
 import LoL
-from discord.ext.commands import MissingPermissions, guild_only
+import db
 
 intents = discord.Intents.all()
 intents.message_content = True
@@ -131,8 +131,44 @@ async def stats(ctx, name, tag, region='RU'):
     embed.add_field(name='rank', value=stats['rank'])
     embed.add_field(name='winrate', value=stats['winrate'])
     embed.add_field(name='Top Champions', value=f'{top_champs[0]}\n{top_champs[1]}\n{top_champs[2]}')
-    embed.set_image(url=f'https://ddragon.leagueoflegends.com/cdn/img/champion/splash/{top_champs[0]}_3.jpg')
+    embed.set_image(url=f'https://ddragon.leagueoflegends.com/cdn/img/champion/splash/{top_champs[0]}_1.jpg')
+    # embed.set_image(url='https://static.wikia.nocookie.net/leagueoflegends/images/6/66/Xayah_OriginalCentered.jpg
+    # /revision/latest?cb=20180414203728')
+    icon_id = await LoL.get_icon_id(region, puuid)
+    embed.set_thumbnail(url=f'https://ddragon.leagueoflegends.com/cdn/14.15.1/img/profileicon/{icon_id}.png')
     await ctx.send(embed=embed)
 
+@bot.command()
+async def create_acc(ctx, name, tag):
+    user_id = ctx.author.id
+    global_name = ctx.author.global_name
+    name = name
+    tag = tag
+    puuid = await LoL.get_puuid(name, tag)
+    level = await LoL.get_level('RU', puuid)
+    id = await LoL.get_sum_id('RU', puuid)
+    rank = await LoL.get_stats(id, puuid, 'RU')
+    rank = rank['rank']
+    await db.create_table_members(db.name_bd)
+    print('Table created')
+    await db.create_table_lol(db.name_bd)
+    print('Table created')
+    await db.create_line(user_id, global_name, name, tag, puuid)
+    print('Запись добавлена в таблицу members')
+    await db.create_line_lol(puuid, level, rank, 'Я хз как добавить сюда чемпионов')
+    print('Запись добавлена в таблицу lol')
+
+@bot.command()
+async def prof(ctx):
+    id = ctx.author.id
+    stats = await db.get_stats_lol(id)
+    embed = discord.Embed(
+        title='Stats',
+        colour=discord.Colour.dark_blue()
+    )
+    embed.add_field(name='level', value=stats[1])
+    embed.add_field(name='rank', value=stats[2])
+    embed.add_field(name='champs', value=stats[3])
+    await ctx.send(embed=embed)
 if __name__ == '__main__':
     bot.run(token=config.BOT_TOKEN)
