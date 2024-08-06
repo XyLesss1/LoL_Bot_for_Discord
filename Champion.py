@@ -8,6 +8,8 @@ def find_champ(id):
         if champs['data'][key]['key'] == str(id):
             return key
 
-# def find_picture(id):
+
+
+
 
 
