@@ -39,6 +39,8 @@ async def on_member_join(member):
         if ch.name == 'общее':
             await bot.get_channel(ch.id).send(embed=embed)
     await member.add_roles(role)
+    await db.create_table(db.name_bd)
+    await db.create_line_users(member.id)
 
 
 @bot.event
@@ -85,14 +87,14 @@ async def ban(ctx, member: discord.Member, *, reason="Многократное �
 
 @bot.command()
 @commands.has_permissions(administrator=True)
-async def mute(ctx, member: discord.Member, H=0, M=0, S=5, *, reason="Нарушение правил"):
+async def mute(ctx, member: discord.Member, M, *, reason="Нарушение правил"):
     roles = member.roles
     role = discord.utils.get(ctx.guild.roles, id=1267405498706169867)
     for role_mem in roles[1:]:
         await member.remove_roles(role_mem)
     await member.add_roles(role, reason=reason)
     message: discord.Message = await ctx.send(f'User {member.mention} has been muted.')
-    time = H * 3600 + M * 60 + S
+    time = M * 60
     await asyncio.sleep(time)
     await member.remove_roles(role)
     for role_mem in roles[1:]:
@@ -216,6 +218,15 @@ async def my_activity(ctx):
     embed.add_field(name='Warns: ', value='Warns')
     embed.set_thumbnail(url=ctx.author.avatar)
     await ctx.send(embed=embed)'''
+@bot.command()
+@commands.has_permissions(administrator=True)
+async def warn(ctx, member: discord.Member):
+    await db.add_warn(member.id)
+    warns = await db.get_warns(member.id)
+    await ctx.send(f'Пользователю f{member.mention} был выдан варн. Текущее кол-во варнов - {warns}')
+    if warns >= 4:
+        await member.ban()
+        await ctx.send(f'Member {member.mention} was banned')
 
 
 if __name__ == '__main__':
