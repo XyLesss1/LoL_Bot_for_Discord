@@ -50,7 +50,7 @@ async def on_message(message):
 @bot.command()
 @commands.has_permissions(kick_members=True, administrator=True)
 async def kick(ctx, member: discord.Member, *, reason="Нарушение правил"):
-    await ctx.send(f"Admin {ctx.author.mention} исключил пользователя {member.mention}", delete_after=2)
+    await ctx.send(f"Admin {ctx.author.mention} has excluded the user {member.mention}", delete_after=2)
     await member.kick(reason=reason)
     await ctx.message.delete()
 
@@ -65,7 +65,7 @@ async def stats(ctx, name, tag, region):
     id = await LoL.get_sum_id(region, puuid)
     stats = await LoL.get_stats(id, puuid, region)
     embed = discord.Embed(
-        title='Статистика игрока',
+        title='Player statistics',
         color=discord.Colour.dark_blue(),
     )
     top_champs = await LoL.get_top_champions(region, puuid, top=3)
@@ -95,7 +95,7 @@ async def create_acc(ctx, member: discord.Member, name, tag, region):
         await db.create_line(user_id, global_name, name, tag, puuid, region)
         print('Запись добавлена в таблицу members')
     except sqlite3.IntegrityError:
-        await ctx.send('Аккаунт с данным id уже существует')
+        await ctx.send('An account with this id already exists')
 
 
 
@@ -129,7 +129,8 @@ async def prof(ctx):
 async def warn(ctx, member: discord.Member):
     await db.add_warn(member.id)
     warns = await db.get_warns(member.id)
-    await ctx.send(f'Пользователю f{member.mention} был выдан варн. Текущее кол-во варнов - {warns}')
+    await ctx.send(f'The user {member.mention} was issued a warning. Current number of warnings:
+{warns}')
     if warns >= 4:
         await member.ban()
         await ctx.send(f'Member {member.mention} was banned')
